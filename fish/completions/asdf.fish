@@ -1,0 +1,1 @@
+/home/mabm/.asdf/completions/asdf.fish
