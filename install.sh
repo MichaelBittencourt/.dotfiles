@@ -1,17 +1,18 @@
 #!/bin/bash
 
-DOT_FILES_DIR=$(dirname $0)
+DOT_FILES_DIR=$(realpath $(dirname $0))
 
 LINK_FILES=(
-    "${DOT_FILES_DIR}/bashrc:${HOME}/.bashrc"
-    "${DOT_FILES_DIR}/zshrc:${HOME}/.zshrc"
-    "${DOT_FILES_DIR}/p10k.zsh:${HOME}/.p10k.zsh"
-    "${DOT_FILES_DIR}/oh-my-zsh:${HOME}/.oh-my-zsh"
-    "${DOT_FILES_DIR}/vimrc:${HOME}/.vimrc"
-    "${DOT_FILES_DIR}/vim:${HOME}/.vim"
-    "${DOT_FILES_DIR}/tmux.conf:${HOME}/.tmux.conf"
-    "${DOT_FILES_DIR}/clang-format:${HOME}/.clang-format"
-    "${DOT_FILES_DIR}/fish:${HOME}/.config/fish"
+    "${DOT_FILES_DIR}/bash/bashrc:${HOME}/.bashrc"
+    "${DOT_FILES_DIR}/zsh/zshrc:${HOME}/.zshrc"
+    "${DOT_FILES_DIR}/zsh/p10k.zsh:${HOME}/.p10k.zsh"
+    "${DOT_FILES_DIR}/zsh/oh-my-zsh:${HOME}/.oh-my-zsh"
+    "${DOT_FILES_DIR}/vim/vimrc:${HOME}/.vimrc"
+    "${DOT_FILES_DIR}/vim/vim:${HOME}/.vim"
+    "${DOT_FILES_DIR}/tmux/tmux.conf:${HOME}/.tmux.conf"
+    "${DOT_FILES_DIR}/clang/clang-format:${HOME}/.clang-format"
+    "${DOT_FILES_DIR}/fish/fish:${HOME}/.config/fish"
+    "${DOT_FILES_DIR}/lvim/config.lua:${HOME}/.config/lvim/config.lua"
 )
 
 
@@ -21,7 +22,8 @@ function create_symbolic_links() {
         local to=$(echo $i | cut -d":" -f2)
         create_backup "$to"
         echo "Creating symbolic link of $from on $to..."
-        ln -s "$to" "$from"
+        ln -s "$from" "$to"
+        #ln -s $(pwd)/fish ~/.config/fish
     done
 }
 
@@ -42,7 +44,7 @@ function create_backup() {
 function main() {
     create_symbolic_links
     echo "Copying fish_variables to fish folder..."
-    cp ${DOT_FILES_DIR}/fish_variables ${DOT_FILES_DIR}/fish/fish_variables
+    cp ${DOT_FILES_DIR}/fish/fish_variables ${DOT_FILES_DIR}/fish/fish/fish_variables
 }
 
 main
