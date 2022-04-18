@@ -13,6 +13,7 @@ LINK_FILES=(
     "${DOT_FILES_DIR}/clang/clang-format:${HOME}/.clang-format"
     "${DOT_FILES_DIR}/fish/fish:${HOME}/.config/fish"
     "${DOT_FILES_DIR}/lvim/config.lua:${HOME}/.config/lvim/config.lua"
+    "${DOT_FILES_DIR}/i3/config:${HOME}/.config/i3/config"
 )
 
 
