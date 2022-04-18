@@ -21,10 +21,20 @@ function create_symbolic_links() {
     for i in ${LINK_FILES[@]}; do
         local from=$(echo $i | cut -d":" -f1)
         local to=$(echo $i | cut -d":" -f2)
-        create_backup "$to"
-        echo "Creating symbolic link of $from on $to..."
-        ln -s "$from" "$to"
-        #ln -s $(pwd)/fish ~/.config/fish
+        local response=""
+        read -r -p "Install $from to $to? [y/N] " response
+        case "$response" in
+            [yY][eE][sS]|[yY])
+                echo "Installing $from!"
+                create_backup "$to"
+                echo "Creating symbolic link of $from on $to..."
+                ln -s "$from" "$to"
+                #ln -s $(pwd)/fish ~/.config/fish
+                ;;
+            *)
+                echo "Installation of $from skipped!"
+                ;;
+        esac
     done
 }
 
