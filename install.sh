@@ -29,7 +29,7 @@ function installOhMyZsh() {
         [yY][eE][sS]|[yY])
             echo "Installing Oh-My-Zsh!"
             create_backup "${OH_MY_ZSH_PATH}"
-            sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+            sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || return 2
             installOhMyZsh-plugins
             ;;
         *)
@@ -82,7 +82,7 @@ function create_backup() {
 }
 
 function main() {
-    installOhMyZsh
+    installOhMyZsh || echo "Error to install Oh-My-Zsh!"
     create_symbolic_links
     echo "Copying fish_variables to fish folder..."
     cp ${DOT_FILES_DIR}/fish/fish_variables ${DOT_FILES_DIR}/fish/fish/fish_variables
