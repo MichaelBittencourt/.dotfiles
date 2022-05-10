@@ -29,7 +29,7 @@ function installOhMyZsh() {
         [yY][eE][sS]|[yY])
             echo "Installing Oh-My-Zsh!"
             create_backup "${OH_MY_ZSH_PATH}"
-            sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" || return 2
+            sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh) --unattended --skip-chsh" || return 2
             installOhMyZsh-plugins
             ;;
         *)
