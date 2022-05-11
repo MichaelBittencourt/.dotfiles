@@ -69,14 +69,15 @@ function create_symbolic_links() {
 
 function create_backup() {
     local file_or_folder="$1"
-    if [ -n "${file_or_folder}" ]; then 
+    local file_or_folder_bkp="${file_or_folder}$(date +"%Y-%m-%d-%T").bkp"
+    if [ -n "${file_or_folder}" ]; then
         if [ -h "${file_or_folder}" ]; then
             unlink ${file_or_folder}
         elif [ -f "${file_or_folder}" ] || [ -d "${file_or_folder}" ]; then
-            echo "Creating a backup to $file_or_folder in ${file_or_folder}.bkp"
-            mv $file_or_folder ${file_or_folder}.bkp
+            echo "Creating a backup to $file_or_folder in ${file_or_folder_bkp}"
+            mv $file_or_folder ${file_or_folder_bkp}
         fi
-    else 
+    else
         echo "create_backup need a param"
     fi
 }
