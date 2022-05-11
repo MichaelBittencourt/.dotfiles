@@ -126,16 +126,23 @@ export EDITOR=lvim
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias vim=lvim
-alias exa="exa --icons"
-alias nmux="lvim -c \"Neomux\""
-alias ls="exa"
+
+# wrapper aliases, uncomment next lines to enable these aliases
+# alias vim=lvim
+# alias exa="exa --icons"
+# alias nmux="lvim -c \"Neomux\""
+#alias ls="exa"
+
+# kill aliases
 #To kill proccess that has conflict with fastboot
 alias psfwu='ps aux | grep fwupd'
 alias kpsfwu=$'psfwu | grep -v grep | grep root | awk {\'print$2""\'} | xargs sudo kill -9'
 alias pszygote='adb shell ps | grep " zygote" | grep -v grep'
 alias kzygote=$'for i in $(pszygote | grep root | awk {\'print$2""\'}); do adb shell kill -9 "$i"; done'
+
+# vpn aliases
 alias kvpn=$'for i in $(ps aux | grep -e pulsesvc -e pulseUi | grep -v grep | awk \'{ print $2 }\'); do test "$i" = "" || sudo kill -9 "$i"; done'
+alias moto_vpn=$'/usr/local/pulse/pulseUi 2> /dev/null 1>&2 &'
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
