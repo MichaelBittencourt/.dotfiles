@@ -111,6 +111,10 @@ bindsym $mod+Shift+Tab workspace prev
 bindsym $mod+n workspace next
 bindsym $mod+p workspace prev
 
+# move workspace to next and prev
+bindsym $mod+Shift+n move workspace to output right
+bindsym $mod+Shift+p move workspace to output left
+
 # move focused container to workspace
 bindsym $mod+Shift+1 move container to workspace 1
 bindsym $mod+Shift+2 move container to workspace 2
