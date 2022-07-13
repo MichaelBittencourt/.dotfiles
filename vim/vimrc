@@ -217,3 +217,38 @@ set nowrap
 
 "To break line"
 "set wrap
+
+let g:columnmark=1
+set signcolumn=yes
+set colorcolumn=80
+
+function! TogleColumn()
+    if g:columnmark
+        set colorcolumn=0
+        let g:columnmark=0
+    else
+        set colorcolumn=80
+        let g:columnmark=1
+    endif
+endfunc
+
+set updatetime=50
+
+set cursorline
+
+nnoremap <C-l> <C-w>l
+nnoremap <C-h> <C-w>h
+nnoremap <C-k> <C-w>k
+nnoremap <C-j> <C-w>j
+
+nnoremap ; :
+inoremap jj <esc>
+
+let mapleader = " "
+nnoremap <leader>w :w<CR>
+nnoremap <leader>q :q<CR>
+nnoremap <leader>e :Ex<CR>
+nnoremap <leader>z :set nu!<CR>
+nnoremap <leader>r :%s///gc<left><left><left>
+nnoremap <leader>c :call TogleColumn()<CR>
+
