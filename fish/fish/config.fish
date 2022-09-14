@@ -1,10 +1,14 @@
 if status is-interactive
     # Commands to run in interactive sessions can go here
-    function ls
-        exa --icons $argv
+    if which exa
+        function ls
+            exa --icons $argv
+        end
     end
-    function vim
-        lvim $argv
+    if which lvim
+        function vim
+            lvim $argv
+        end
     end
 
     function psfwu
