@@ -7,7 +7,7 @@ This project was created to make easy install dotfiles in an other environment
 ### With curl
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/MichaelBittencourt/.dotfiles/main/donwload.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/MichaelBittencourt/.dotfiles/main/download.sh)"
 ```
 
 ### With wget
