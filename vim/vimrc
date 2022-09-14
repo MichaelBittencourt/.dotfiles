@@ -41,6 +41,8 @@ Plugin 'vim-javacomplete2'
 
 Plugin 'preservim/NERDTree'
 
+Plugin 'dag/vim-fish'
+
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
 
