@@ -1,3 +1,6 @@
+fish_add_path -g ~/.local/bin
+fish_add_path -g ~/.cargo/bin
+
 if status is-interactive
     # Commands to run in interactive sessions can go here
     if which exa
@@ -42,5 +45,3 @@ if status is-interactive
 end
 
 source ~/.asdf/asdf.fish
-fish_add_path "~/.local/bin/"
-fish_add_path "~/.cargo/bin/"
