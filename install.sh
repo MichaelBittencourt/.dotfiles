@@ -7,7 +7,6 @@ LINK_FILES=(
     "${DOT_FILES_DIR}/zsh/zshrc:${HOME}/.zshrc"
     "${DOT_FILES_DIR}/zsh/p10k.zsh:${HOME}/.p10k.zsh"
     "${DOT_FILES_DIR}/vim/vimrc:${HOME}/.vimrc"
-    "${DOT_FILES_DIR}/vim/vim:${HOME}/.vim"
     "${DOT_FILES_DIR}/tmux/tmux.conf:${HOME}/.tmux.conf"
     "${DOT_FILES_DIR}/clang/clang-format:${HOME}/.clang-format"
     "${DOT_FILES_DIR}/fish/fish:${HOME}/.config/fish"
@@ -17,11 +16,27 @@ LINK_FILES=(
 )
 
 OH_MY_ZSH_PATH="${HOME}/.oh-my-zsh"
+VUNDLE_VIM_PATH="${HOME}/.vim"
 
 ZSH_PLUGIN_LIST=(
     "https://github.com/zsh-users/zsh-autosuggestions;${OH_MY_ZSH_PATH}/custom/plugins/zsh-autosuggestions"
     "https://github.com/romkatv/powerlevel10k.git;${OH_MY_ZSH_PATH}/custom/themes/powerlevel10k"
 )
+
+function installVundleVim() {
+    read -r -p "Install Vundle vim? [y/N] " response
+    case "$response" in
+        [yY][eE][sS]|[yY])
+            echo "Installing Vundle Vim!"
+            create_backup "${VUNDLE_VIM_PATH}"
+            git clone https://github.com/VundleVim/Vundle.vim.git "$VUNDLE_VIM_PATH/bundle/Vundle.vim" || return 2
+            vim +PluginInstall +qall || return 3
+            ;;
+        *)
+            echo "Installation of Vundle Vim skipped!"
+            ;;
+    esac
+}
 
 function installOhMyZsh() {
     read -r -p "Install Oh-My-Zsh? [y/N] " response
@@ -84,6 +99,7 @@ function create_backup() {
 
 function main() {
     installOhMyZsh || echo "Error to install Oh-My-Zsh!"
+    installVundleVim || echo "Error to install Vundle vim!"
     create_symbolic_links
     echo "Copying fish_variables to fish folder..."
     cp ${DOT_FILES_DIR}/fish/fish_variables ${DOT_FILES_DIR}/fish/fish/fish_variables
