@@ -3,12 +3,12 @@ fish_add_path -g ~/.cargo/bin
 
 if status is-interactive
     # Commands to run in interactive sessions can go here
-    if which exa
+    if which exa > /dev/null
         function ls
             exa --icons $argv
         end
     end
-    if which lvim
+    if which lvim > /dev/null
         function vim
             lvim $argv
         end
