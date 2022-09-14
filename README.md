@@ -12,5 +12,5 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/MichaelBittencourt/.dotf
 
 ### With wget
 ```bash
-bash -c "$(wget https://raw.githubusercontent.com/MichaelBittencourt/.dotfiles/main/donwload.sh -O -)"
+bash -c "$(wget https://raw.githubusercontent.com/MichaelBittencourt/.dotfiles/main/download.sh -O -)"
 ```
