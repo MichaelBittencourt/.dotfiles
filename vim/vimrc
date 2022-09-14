@@ -39,6 +39,7 @@ Plugin 'OmniCppComplete'
 
 Plugin 'vim-javacomplete2'
 
+Plugin 'preservim/NERDTree'
 
 " All of your Plugins must be added before the following line
 call vundle#end()            " required
@@ -189,10 +190,6 @@ augroup vimrc     " Source vim configuration upon save
     autocmd! BufWritePost $MYVIMRC source % | echom "Reloaded " . $MYVIMRC | redraw
     autocmd! BufWritePost $MYGVIMRC if has('gui_running') | so % | echom "Reloaded " . $MYGVIMRC | endif | redraw
 augroup END
-
-call plug#begin()
-Plug 'preservim/NERDTree'
-call plug#end()
 
 set nocp
 filetype plugin on
