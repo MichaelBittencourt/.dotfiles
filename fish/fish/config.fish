@@ -20,7 +20,7 @@ if status is-interactive
     end
 
     function kzygote
-        for i in $(pszygote | grep root | awk {'print$2""'})
+        for i in (pszygote | grep root | awk {'print$2""'})
             adb shell kill -9 "$i"
         end
     end
