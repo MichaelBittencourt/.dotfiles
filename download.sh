@@ -22,8 +22,17 @@ function installDotFiles() {
 }
 
 function installDependencies() {
-    cd "$DOTFILES_PATH"
-    bash "install_dependencies.sh" || return 3
+    read -r -p "Install all needed tools? [y/N] " response
+    case "$response" in
+        [yY][eE][sS]|[yY])
+            echo "Installing Dependencies..."
+            cd "$DOTFILES_PATH"
+            bash "install_dependencies.sh" || return 3
+            ;;
+        *)
+            echo "Installation of dependencies skipped!"
+            ;;
+    esac
 }
 
 function create_backup() {
