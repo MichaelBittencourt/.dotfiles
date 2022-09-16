@@ -3,6 +3,14 @@
 DOTFILES_LINK="https://github.com/MichaelBittencourt/.dotfiles.git"
 DOTFILES_PATH="$HOME/.dotfiles"
 
+function install_git_dependency() {
+    if ! which git > /dev/null
+    then
+        sudo apt-get update
+        sudo apt-get install -y git
+    fi
+}
+
 function clone_dotfiles() {
     create_backup "$DOTFILES_PATH"
     git clone --depth=1 "$DOTFILES_LINK" "$DOTFILES_PATH"
@@ -11,6 +19,11 @@ function clone_dotfiles() {
 function installDotFiles() {
     cd "$DOTFILES_PATH"
     bash "install.sh" || return 3
+}
+
+function installDependencies() {
+    cd "$DOTFILES_PATH"
+    bash "install_dependencies.sh" || return 3
 }
 
 function create_backup() {
@@ -29,7 +42,9 @@ function create_backup() {
 }
 
 function main() {
+    install_git_dependency || return 1
     clone_dotfiles || echo "Error to .dontfiles!"
+    installDependencies || echo "Error to install dependencies"
     installDotFiles || echo "Error to install dotfiles"
 }
 
