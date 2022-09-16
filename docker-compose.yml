@@ -1,0 +1,8 @@
+version: "3.9"
+services:
+    test:
+        image: curl_ubuntu:1.0.0
+        build: .
+        volumes:
+            - ./:/dotfiles
+            - ./dev/sudo:/usr/bin/sudo
