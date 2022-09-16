@@ -76,11 +76,20 @@ function install_neovim() {
     fi
 }
 
+function configure_programs() {
+    # To grant that fish shell create its configuration folder we need open the program
+    if which fish > /dev/null
+    then
+        fish -c "echo Running echo on fish shell to test if it is alread installed and working!"
+    fi
+}
+
 function main() {
     install_apt_get_binaries
-    #install_cargo_dependencies
+    install_cargo_dependencies
     install_platform_tools
     install_neovim
+    configure_programs
 }
 
 main $@
