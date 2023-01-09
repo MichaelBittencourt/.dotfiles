@@ -139,6 +139,7 @@ alias psfwu='ps aux | grep fwupd'
 alias kpsfwu=$'psfwu | grep -v grep | grep root | awk {\'print$2""\'} | xargs sudo kill -9'
 alias pszygote='adb shell ps | grep " zygote" | grep -v grep'
 alias kzygote=$'for i in $(pszygote | grep root | awk {\'print$2""\'}); do adb shell kill -9 "$i"; done'
+alias restart_audio=$'pulseaudio -k && sudo alsa force-reload'
 
 # vpn aliases
 alias kvpn=$'for i in $(ps aux | grep -e pulsesvc -e pulseUi | grep -v grep | awk \'{ print $2 }\'); do test "$i" = "" || sudo kill -9 "$i"; done'
