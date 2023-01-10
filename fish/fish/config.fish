@@ -44,6 +44,6 @@ if status is-interactive
     fish_vi_key_bindings
 end
 
-if [ -f "~/.asdf/asdf.fish" ]
+if [ -f ~/.asdf/asdf.fish ]
     source ~/.asdf/asdf.fish
 end
