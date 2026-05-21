@@ -1,5 +1,9 @@
 fish_add_path -g ~/.local/bin
 fish_add_path -g ~/.cargo/bin
+fish_add_path -g ~/go/bin
+set -gx ASDF_DATA_DIR $HOME/.asdf
+fish_add_path -g $ASDF_DATA_DIR/shims
+fish_add_path -g $ASDF_DATA_DIR/installs/rust/1.95.0/bin/
 
 if status is-interactive
     # Commands to run in interactive sessions can go here
@@ -42,8 +46,4 @@ if status is-interactive
 
     # To add vim mode by default on fish interaction
     fish_vi_key_bindings
-end
-
-if [ -f ~/.asdf/asdf.fish ]
-    source ~/.asdf/asdf.fish
 end

@@ -101,7 +101,7 @@ bindkey -v
 export KEYTIMEOUT=1
 
 
-export EDITOR=lvim
+export EDITOR=vim
 
 # export MANPATH="/usr/local/man:$MANPATH"
 
@@ -141,11 +141,10 @@ alias pszygote='adb shell ps | grep " zygote" | grep -v grep'
 alias kzygote=$'for i in $(pszygote | grep root | awk {\'print$2""\'}); do adb shell kill -9 "$i"; done'
 alias restart_audio=$'pulseaudio -k && sudo alsa force-reload'
 
-# vpn aliases
-alias kvpn=$'for i in $(ps aux | grep -e pulsesvc -e pulseUi | grep -v grep | awk \'{ print $2 }\'); do test "$i" = "" || sudo kill -9 "$i"; done'
-alias moto_vpn=$'/usr/local/pulse/pulseUi 2> /dev/null 1>&2 &'
-
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-export PATH="$PATH:$HOME/.local/bin/:$HOME/.cargo/bin/"
+export PATH="$PATH:$HOME/.local/bin/:$HOME/.cargo/bin/:$HOME/go/bin"
+export ASDF_DATA_DIR="$HOME/.asdf"
+export PATH="$ASDF_DATA_DIR/shims:$PATH"
+bindkey -s $'\eOo' '/'
