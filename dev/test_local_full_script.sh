@@ -7,8 +7,8 @@ trap 'install_report_trap_exit 143' TERM
 trap 'install_report_trap_exit $?' EXIT
 
 cd "$HOME" || exit 1
-bash "$HOME/.dotfiles/install_dependencies.sh" || report_failure "install_dependencies.sh failed"
-bash "$HOME/.dotfiles/install.sh" || report_failure "install.sh failed"
+bash "$HOME/.dotfiles/install_dependencies.sh" "$@" || report_failure "install_dependencies.sh failed"
+bash "$HOME/.dotfiles/install.sh" "$@" || report_failure "install.sh failed"
 trap - EXIT INT TERM
 print_install_report
 cleanup_install_report

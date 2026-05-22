@@ -49,6 +49,7 @@ function installOhMyZsh-plugins() {
 }
 
 function create_config_menu() {
+    local install_all="${1:-0}"
     local labels=()
     local types=()
     local values=()
@@ -83,11 +84,18 @@ function create_config_menu() {
         selected+=(0)
     done
 
-    mapfile -t selected_indexes < <(checkbox_menu "Select config tools and files to install" "${labels[@]}")
+    if [ "$install_all" = "1" ]; then
+        echo "Installing all available config tools and files without interactive menus."
+        for ((index = 0; index < ${#selected[@]}; index++)); do
+            selected[index]=1
+        done
+    else
+        mapfile -t selected_indexes < <(checkbox_menu "Select config tools and files to install" "${labels[@]}")
 
-    for index in "${selected_indexes[@]}"; do
-        selected[index]=1
-    done
+        for index in "${selected_indexes[@]}"; do
+            selected[index]=1
+        done
+    fi
 
     for ((index = 0; index < ${#labels[@]}; index++)); do
         if [ "${selected[index]}" -ne 1 ]; then
@@ -137,7 +145,22 @@ function create_backup() {
 }
 
 function main() {
-    create_config_menu
+    local install_all=0
+
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --all)
+                install_all=1
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                return 2
+                ;;
+        esac
+        shift
+    done
+
+    create_config_menu "$install_all"
     echo "Copying fish_variables to fish folder..."
     run_cmd cp "${DOT_FILES_DIR}/fish/fish_variables" "${DOT_FILES_DIR}/fish/fish/fish_variables" || report_failure "copy fish_variables"
 }

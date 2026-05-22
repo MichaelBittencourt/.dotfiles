@@ -1,0 +1,11 @@
+services:
+  ubuntu-work:
+    build:
+      context: ..
+      dockerfile: work-image/Dockerfile
+    image: dotfiles-ubuntu-work:latest
+    working_dir: /workspace
+    volumes:
+      - ./workspace:/workspace
+    tty: true
+    stdin_open: true

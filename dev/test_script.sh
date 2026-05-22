@@ -1,6 +1,6 @@
 #!/bin/bash
 
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/MichaelBittencourt/.dotfiles/main/download.sh)"
+curl -fsSL https://raw.githubusercontent.com/MichaelBittencourt/.dotfiles/main/download.sh | bash -s -- "$@"
 if command -v fish > /dev/null; then
     fish
 else

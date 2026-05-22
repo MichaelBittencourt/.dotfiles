@@ -2,6 +2,7 @@
 
 DOTFILES_LINK="https://github.com/MichaelBittencourt/.dotfiles.git"
 DOTFILES_PATH="$HOME/.dotfiles"
+INSTALL_ALL=0
 
 function install_git_dependency() {
     if ! which git > /dev/null
@@ -17,16 +18,27 @@ function clone_dotfiles() {
 }
 
 function installDotFiles() {
-    cd "$DOTFILES_PATH"
-    bash "install.sh" || return 3
+    cd "$DOTFILES_PATH" || return 1
+    if [ "$INSTALL_ALL" = "1" ]; then
+        bash "install.sh" --all || return 3
+    else
+        bash "install.sh" || return 3
+    fi
 }
 
 function installDependencies() {
+    if [ "$INSTALL_ALL" = "1" ]; then
+        echo "Installing all dependencies without interactive prompts..."
+        cd "$DOTFILES_PATH" || return 1
+        bash "install_dependencies.sh" --all || return 3
+        return 0
+    fi
+
     read -r -p "Install all needed tools? [y/N] " response
     case "$response" in
         [yY][eE][sS]|[yY])
             echo "Installing Dependencies..."
-            cd "$DOTFILES_PATH"
+            cd "$DOTFILES_PATH" || return 1
             bash "install_dependencies.sh" || return 3
             ;;
         *)
@@ -50,11 +62,27 @@ function create_backup() {
     fi
 }
 
+function parse_args() {
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --all)
+                INSTALL_ALL=1
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                return 2
+                ;;
+        esac
+        shift
+    done
+}
+
 function main() {
+    parse_args "$@" || return 2
     install_git_dependency || return 1
     clone_dotfiles || echo "Error to .dontfiles!"
     installDependencies || echo "Error to install dependencies"
     installDotFiles || echo "Error to install dotfiles"
 }
 
-main
+main "$@"

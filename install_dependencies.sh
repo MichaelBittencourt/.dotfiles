@@ -5,7 +5,7 @@ ROOT_PATH=$(realpath "$(dirname "$0")")
 source "${ROOT_PATH}/scripts/checkbox_menu.sh"
 source "${ROOT_PATH}/scripts/install_report.sh"
 
-DEPENDENCE_LIST=(bash vim neovim zsh fish git curl wget tmux unzip tar build-essential gcc g++ gdb make cmake pkg-config erlang)
+DEPENDENCE_LIST=(bash vim neovim zsh fish git curl wget tmux unzip tar build-essential gcc g++ gdb make cmake pkg-config erlang openssh-client openssh-server)
 
 CARGO_SOFTWARE_LIST=(exa bat)
 
@@ -78,6 +78,7 @@ function link_cargo_binary() {
 }
 
 function install_cargo_softwares() {
+    local install_all="${1:-0}"
     local labels=()
     local selected_indexes=()
     local selected=()
@@ -100,11 +101,17 @@ function install_cargo_softwares() {
         selected+=(0)
     done
 
-    mapfile -t selected_indexes < <(checkbox_menu "Select cargo softwares to install" "${labels[@]}")
+    if [ "$install_all" = "1" ]; then
+        for ((index = 0; index < ${#selected[@]}; index++)); do
+            selected[index]=1
+        done
+    else
+        mapfile -t selected_indexes < <(checkbox_menu "Select cargo softwares to install" "${labels[@]}")
 
-    for index in "${selected_indexes[@]}"; do
-        selected[index]=1
-    done
+        for index in "${selected_indexes[@]}"; do
+            selected[index]=1
+        done
+    fi
 
     for ((index = 0; index < ${#CARGO_SOFTWARE_LIST[@]}; index++)); do
         item="${CARGO_SOFTWARE_LIST[index]}"
@@ -307,6 +314,7 @@ function test_asdf_language() {
 }
 
 function install_asdf_languages_menu() {
+    local install_all="${1:-0}"
     local labels=("Rust" "Node.js" "Elixir" "Go" "Python" "Java OpenJDK 26" "Kotlin")
     local plugins=("rust" "nodejs" "elixir" "golang" "python" "java" "kotlin")
     local versions=("latest" "latest" "main" "latest" "latest" "openjdk-26" "latest")
@@ -323,11 +331,17 @@ function install_asdf_languages_menu() {
         selected+=(0)
     done
 
-    mapfile -t selected_indexes < <(checkbox_menu "Select asdf languages to install" "${labels[@]}")
+    if [ "$install_all" = "1" ]; then
+        for ((index = 0; index < ${#selected[@]}; index++)); do
+            selected[index]=1
+        done
+    else
+        mapfile -t selected_indexes < <(checkbox_menu "Select asdf languages to install" "${labels[@]}")
 
-    for index in "${selected_indexes[@]}"; do
-        selected[index]=1
-    done
+        for index in "${selected_indexes[@]}"; do
+            selected[index]=1
+        done
+    fi
 
     for ((index = 0; index < ${#labels[@]}; index++)); do
         if [ "${selected[index]}" -ne 1 ]; then
@@ -354,6 +368,7 @@ function configure_programs() {
 }
 
 function main() {
+    local install_all=0
     local labels=()
     local types=()
     local values=()
@@ -362,6 +377,19 @@ function main() {
     local selected_indexes=()
     local selected=()
     local index=0
+
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --all)
+                install_all=1
+                ;;
+            *)
+                echo "Unknown option: $1" >&2
+                return 2
+                ;;
+        esac
+        shift
+    done
 
     for item in "${DEPENDENCE_LIST[@]}"; do
         labels+=("apt: $item")
@@ -385,11 +413,18 @@ function main() {
     values+=("configure_programs")
     selected+=(0)
 
-    mapfile -t selected_indexes < <(checkbox_menu "Select dependencies to install" "${labels[@]}")
+    if [ "$install_all" = "1" ]; then
+        echo "Installing all dependencies and tools without interactive menus."
+        for ((index = 0; index < ${#selected[@]}; index++)); do
+            selected[index]=1
+        done
+    else
+        mapfile -t selected_indexes < <(checkbox_menu "Select dependencies to install" "${labels[@]}")
 
-    for index in "${selected_indexes[@]}"; do
-        selected[index]=1
-    done
+        for index in "${selected_indexes[@]}"; do
+            selected[index]=1
+        done
+    fi
 
     for ((index = 0; index < ${#labels[@]}; index++)); do
         if [ "${selected[index]}" -ne 1 ]; then
@@ -423,8 +458,8 @@ function main() {
         esac
     done
 
-    install_asdf_languages_menu
-    install_cargo_softwares
+    install_asdf_languages_menu "$install_all"
+    install_cargo_softwares "$install_all"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
