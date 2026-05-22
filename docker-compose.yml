@@ -1,8 +1,49 @@
-version: "3.9"
 services:
     test:
         image: curl_ubuntu:1.0.0
         build: .
+        working_dir: /root
+        entrypoint: ["bash", "/test_local_script.sh"]
         volumes:
-            - ./:/dotfiles
+            - ./:/root/.dotfiles
+            - ./dev/sudo:/usr/bin/sudo
+            - ./dev/test_local_script.sh:/test_local_script.sh
+
+    test-local:
+        image: curl_ubuntu:1.0.0
+        build: .
+        working_dir: /root
+        entrypoint: ["bash", "/test_local_script.sh"]
+        volumes:
+            - ./:/root/.dotfiles
+            - ./dev/sudo:/usr/bin/sudo
+            - ./dev/test_local_script.sh:/test_local_script.sh
+
+    test-local-dependencies:
+        image: curl_ubuntu:1.0.0
+        build: .
+        working_dir: /root
+        entrypoint: ["bash", "/test_local_dependencies_script.sh"]
+        volumes:
+            - ./:/root/.dotfiles
+            - ./dev/sudo:/usr/bin/sudo
+            - ./dev/test_local_dependencies_script.sh:/test_local_dependencies_script.sh
+
+    test-local-full:
+        image: curl_ubuntu:1.0.0
+        build: .
+        working_dir: /root
+        entrypoint: ["bash", "/test_local_full_script.sh"]
+        volumes:
+            - ./:/root/.dotfiles
+            - ./dev/sudo:/usr/bin/sudo
+            - ./dev/test_local_full_script.sh:/test_local_full_script.sh
+
+    test-remote:
+        image: curl_ubuntu:1.0.0
+        build: .
+        working_dir: /root
+        entrypoint: ["bash", "/test_script.sh"]
+        volumes:
+            - ./:/root/.dotfiles
             - ./dev/sudo:/usr/bin/sudo

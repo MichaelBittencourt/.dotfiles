@@ -144,7 +144,7 @@ alias restart_audio=$'pulseaudio -k && sudo alsa force-reload'
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-export PATH="$PATH:$HOME/.local/bin/:$HOME/.cargo/bin/:$HOME/go/bin"
+export PATH="$PATH:$HOME/.local/bin/:$HOME/go/bin"
 export ASDF_DATA_DIR="$HOME/.asdf"
-export PATH="$ASDF_DATA_DIR/shims:$PATH"
+export PATH="$ASDF_DATA_DIR/shims:$HOME/.cargo/bin:$PATH"
 bindkey -s $'\eOo' '/'

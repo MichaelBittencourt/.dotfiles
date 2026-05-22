@@ -126,7 +126,7 @@ sudo_check() {
 
 export PS1="\u@\h \[\e[32m\]\w \[\e[91m\]\$(sudo_check)\$(parse_git_branch)\[\e[00m\]$ "
 
-export PATH="$PATH:$HOME/.local/bin/:$HOME/.cargo/bin/"
+export PATH="$PATH:$HOME/.local/bin/"
 
 # kill aliases
 alias pszygote='adb shell ps | grep " zygote" | grep -v grep'
@@ -137,5 +137,5 @@ alias restart_audio=$'pulseaudio -k && sudo alsa force-reload'
 
 export PATH="$PATH:$HOME/go/bin"
 export ASDF_DATA_DIR="$HOME/.asdf"
-export PATH="$ASDF_DATA_DIR/shims:$PATH"
-source <(asdf completion bash)
+export PATH="$ASDF_DATA_DIR/shims:$HOME/.cargo/bin:$PATH"
+command -v asdf >/dev/null && source <(asdf completion bash)

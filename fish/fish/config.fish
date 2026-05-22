@@ -1,9 +1,8 @@
 fish_add_path -g ~/.local/bin
-fish_add_path -g ~/.cargo/bin
 fish_add_path -g ~/go/bin
 set -gx ASDF_DATA_DIR $HOME/.asdf
-fish_add_path -g $ASDF_DATA_DIR/shims
-fish_add_path -g $ASDF_DATA_DIR/installs/rust/1.95.0/bin/
+fish_add_path -gp $ASDF_DATA_DIR/shims
+fish_add_path -g ~/.cargo/bin
 
 if status is-interactive
     # Commands to run in interactive sessions can go here
