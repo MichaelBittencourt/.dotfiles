@@ -3,6 +3,7 @@
 DOT_FILES_DIR=$(realpath "$(dirname "$0")")
 
 source "${DOT_FILES_DIR}/scripts/checkbox_menu.sh"
+source "${DOT_FILES_DIR}/scripts/install_report.sh"
 
 LINK_FILES=(
     "${DOT_FILES_DIR}/bash/bashrc:${HOME}/.bashrc"
@@ -28,14 +29,14 @@ ZSH_PLUGIN_LIST=(
 function installVundleVim() {
     echo "Installing Vundle Vim!"
     create_backup "${VUNDLE_VIM_PATH}"
-    git clone https://github.com/VundleVim/Vundle.vim.git "$VUNDLE_VIM_PATH/bundle/Vundle.vim" || return 2
-    vim +PluginInstall +qall || return 3
+    run_cmd git clone https://github.com/VundleVim/Vundle.vim.git "$VUNDLE_VIM_PATH/bundle/Vundle.vim" || { report_failure "Vundle Vim clone"; return 2; }
+    run_cmd vim +PluginInstall +qall || { report_failure "Vundle Vim PluginInstall"; return 3; }
 }
 
 function installOhMyZsh() {
     echo "Installing Oh-My-Zsh!"
     create_backup "${OH_MY_ZSH_PATH}"
-    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh) --unattended --skip-chsh" || return 2
+    run_cmd sh -c 'curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh -s -- --unattended --skip-chsh' || { report_failure "Oh My Zsh install"; return 2; }
     installOhMyZsh-plugins
 }
 
@@ -43,7 +44,7 @@ function installOhMyZsh-plugins() {
     for i in "${ZSH_PLUGIN_LIST[@]}"; do
         local repo=$(echo "$i" | cut -d";" -f1)
         local folder=$(echo "$i" | cut -d";" -f2)
-        git clone --depth=1 "$repo" "$folder"
+        run_cmd git clone --depth=1 "$repo" "$folder" || report_failure "Oh My Zsh plugin: $repo"
     done
 }
 
@@ -115,9 +116,9 @@ function install_symbolic_link() {
 
     echo "Installing $from!"
     create_backup "$to"
-    mkdir -p "$(dirname "$to")"
+    run_cmd mkdir -p "$(dirname "$to")"
     echo "Creating symbolic link of $from on $to..."
-    ln -s "$from" "$to"
+    run_cmd ln -s "$from" "$to" || report_failure "symbolic link: $from -> $to"
 }
 
 function create_backup() {
@@ -125,10 +126,10 @@ function create_backup() {
     local file_or_folder_bkp="${file_or_folder}$(date +"%Y-%m-%d-%T").bkp"
     if [ -n "${file_or_folder}" ]; then
         if [ -h "${file_or_folder}" ]; then
-            unlink "${file_or_folder}"
+            run_cmd unlink "${file_or_folder}" || report_failure "unlink: ${file_or_folder}"
         elif [ -f "${file_or_folder}" ] || [ -d "${file_or_folder}" ]; then
             echo "Creating a backup to $file_or_folder in ${file_or_folder_bkp}"
-            mv "$file_or_folder" "$file_or_folder_bkp"
+            run_cmd mv "$file_or_folder" "$file_or_folder_bkp" || report_failure "backup: $file_or_folder"
         fi
     else
         echo "create_backup need a param"
@@ -138,9 +139,19 @@ function create_backup() {
 function main() {
     create_config_menu
     echo "Copying fish_variables to fish folder..."
-    cp "${DOT_FILES_DIR}/fish/fish_variables" "${DOT_FILES_DIR}/fish/fish/fish_variables"
+    run_cmd cp "${DOT_FILES_DIR}/fish/fish_variables" "${DOT_FILES_DIR}/fish/fish/fish_variables" || report_failure "copy fish_variables"
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    standalone_report=0
+    if [ -z "${DOTFILES_INSTALL_REPORT_FILE:-}" ]; then
+        standalone_report=1
+    fi
+    init_install_report
+    if [ "$standalone_report" = "1" ]; then
+        trap 'install_report_trap_exit 130' INT
+        trap 'install_report_trap_exit 143' TERM
+        trap 'print_install_report; cleanup_install_report' EXIT
+    fi
     main "$@"
 fi

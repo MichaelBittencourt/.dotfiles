@@ -16,6 +16,9 @@ function checkbox_menu() {
     local cell_width=0
     local column_count=1
     local row_count=0
+    local term_rows=24
+    local menu_height=0
+    local menu_top=1
     local reset=$'\033[0m'
     local bold=$'\033[1m'
     local dim=$'\033[2m'
@@ -23,6 +26,8 @@ function checkbox_menu() {
     local green=$'\033[32m'
     local yellow=$'\033[33m'
     local gray=$'\033[90m'
+    local previous_int_trap=""
+    local previous_term_trap=""
 
     if [ "${#items[@]}" -eq 0 ]; then
         return 0
@@ -62,6 +67,19 @@ function checkbox_menu() {
         column_count="${#items[@]}"
     fi
     row_count=$(( (${#items[@]} + column_count - 1) / column_count ))
+    term_rows=$(tput lines 2> /dev/null || echo 24)
+    if ! [[ "$term_rows" =~ ^[0-9]+$ ]]; then
+        term_rows=24
+    fi
+    menu_height=$((8 + row_count))
+    if [ "$menu_height" -gt "$term_rows" ]; then
+        menu_height="$term_rows"
+    fi
+    menu_top=$((term_rows - menu_height + 1))
+    if [ "$menu_top" -lt 1 ]; then
+        menu_top=1
+    fi
+    start_row=$((menu_top + 8))
 
     function _checkbox_position_for_index() {
         local line_index="$1"
@@ -78,9 +96,34 @@ function checkbox_menu() {
         printf '\033[H\033[J\033[?25h' > /dev/tty
     }
 
-    trap '_checkbox_cleanup; exit 130' INT
-    trap '_checkbox_cleanup; exit 143' TERM
-    trap '_checkbox_cleanup' EXIT
+    function _checkbox_restore_traps() {
+        if [ -n "$previous_int_trap" ]; then
+            eval "$previous_int_trap"
+        else
+            trap - INT
+        fi
+
+        if [ -n "$previous_term_trap" ]; then
+            eval "$previous_term_trap"
+        else
+            trap - TERM
+        fi
+    }
+
+    function _checkbox_exit_with_report() {
+        local status="$1"
+        _checkbox_cleanup
+        if type print_install_report > /dev/null 2>&1; then
+            print_install_report
+        fi
+        _checkbox_restore_traps
+        exit "$status"
+    }
+
+    previous_int_trap=$(trap -p INT || true)
+    previous_term_trap=$(trap -p TERM || true)
+    trap '_checkbox_exit_with_report 130' INT
+    trap '_checkbox_exit_with_report 143' TERM
 
     function _checkbox_render_line() {
         local line_index="$1"
@@ -110,17 +153,17 @@ function checkbox_menu() {
         printf '[%s;%sH%s %b %b%s%b%*s' "$screen_row" "$screen_col" "$cursor" "$mark" "$item_style" "${items[line_index]}" "$reset" "$padding" "" > /dev/tty
     }
 
-    printf '[H[J[?25l' > /dev/tty
-    printf '%b%s%b
-' "$bold$cyan" 'Dotfiles installer' "$reset" > /dev/tty
-    printf '%b%s%b
-' "$bold" "$title" "$reset" > /dev/tty
+    printf '\033[?25l' > /dev/tty
+    for ((index = 0; index < menu_height; index++)); do
+        printf '\n' > /dev/tty
+    done
+    printf '\033[%s;1H%b%s%b\n' "$menu_top" "$bold$cyan" 'Dotfiles installer' "$reset" > /dev/tty
+    printf '%b%s%b\n' "$bold" "$title" "$reset" > /dev/tty
     printf '%bNavigation:%b Up/Down/Left/Right\n' "$dim" "$reset" > /dev/tty
     printf '%bToggle item:%b Space\n' "$dim" "$reset" > /dev/tty
     printf '%bSelect all:%b a\n' "$dim" "$reset" > /dev/tty
     printf '%bDeselect all:%b n\n' "$dim" "$reset" > /dev/tty
     printf '%bConfirm:%b Enter\n\n' "$dim" "$reset" > /dev/tty
-    start_row=9
 
     for ((index = 0; index < ${#items[@]}; index++)); do
         _checkbox_render_line "$index"
@@ -185,7 +228,7 @@ function checkbox_menu() {
         esac
     done
 
-    trap - INT TERM EXIT
+    _checkbox_restore_traps
     printf '[%s;1H[?25h
 ' "$((start_row + row_count))" > /dev/tty
     for ((index = 0; index < ${#selected[@]}; index++)); do

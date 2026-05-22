@@ -3,6 +3,7 @@
 ROOT_PATH=$(realpath "$(dirname "$0")")
 
 source "${ROOT_PATH}/scripts/checkbox_menu.sh"
+source "${ROOT_PATH}/scripts/install_report.sh"
 
 DEPENDENCE_LIST=(bash vim neovim zsh fish git curl wget tmux unzip tar build-essential gcc g++ gdb make cmake pkg-config erlang)
 
@@ -19,41 +20,6 @@ PATH="${LOCAL_BIN_PATH}:${CARGO_BIN_PATH}:${ASDF_DATA_DIR}/shims:${PATH}"
 
 ASDF_VERSION="v0.19.0"
 ASDF_RELEASE_BASE_URI="https://github.com/asdf-vm/asdf/releases/download/${ASDF_VERSION}"
-
-INSTALL_FAILURES=()
-
-function print_command() {
-    printf '+ '
-    printf '%q ' "$@"
-    printf '\n'
-}
-
-function run_cmd() {
-    print_command "$@"
-    "$@"
-}
-
-function report_failure() {
-    INSTALL_FAILURES+=("$1")
-    echo "Error: $1"
-}
-
-function print_install_report() {
-    echo ""
-    echo "Installation report"
-    echo "==================="
-
-    if [ "${#INSTALL_FAILURES[@]}" -eq 0 ]; then
-        echo "All selected items were installed successfully."
-        return 0
-    fi
-
-    echo "The following items were not installed successfully:"
-    local item=""
-    for item in "${INSTALL_FAILURES[@]}"; do
-        echo "- $item"
-    done
-}
 
 function install_apt_get_binaries() {
     local dependencies=("$@")
@@ -268,6 +234,7 @@ function install_asdf_language() {
     local plugin="$1"
     local label="$2"
     local version="$3"
+    local failed=0
 
     echo "Installing asdf plugin and version for $label..."
     if ! run_cmd asdf plugin add "$plugin"; then
@@ -279,46 +246,64 @@ function install_asdf_language() {
             return 1
         fi
     fi
+
+    echo "+ asdf plugin list | grep -qx $plugin"
+    if ! asdf_plugin_installed "$plugin"; then
+        report_failure "asdf plugin not available after add: $label"
+        return 1
+    fi
+
     run_cmd asdf install "$plugin" "$version" || {
         report_failure "asdf language: $label $version"
         return 1
     }
-    run_cmd asdf set -u "$plugin" "$version" || report_failure "asdf default version: $label"
-    run_cmd asdf reshim "$plugin" || report_failure "asdf reshim: $label"
+    run_cmd asdf set -u "$plugin" "$version" || {
+        report_failure "asdf default version: $label"
+        failed=1
+    }
+    run_cmd asdf reshim "$plugin" || {
+        report_failure "asdf reshim: $label"
+        failed=1
+    }
+
+    return "$failed"
 }
 
 function test_asdf_language() {
     local plugin="$1"
     local label="$2"
+    local failed=0
 
     echo "Testing $label installation..."
     case "$plugin" in
         rust)
-            run_cmd rustc --version || report_failure "test Rust rustc"
-            run_cmd cargo --version || report_failure "test Rust cargo"
+            run_cmd rustc --version || { report_failure "test Rust rustc"; failed=1; }
+            run_cmd cargo --version || { report_failure "test Rust cargo"; failed=1; }
             ;;
         nodejs)
-            run_cmd node --version || report_failure "test Node.js node"
-            run_cmd npm --version || report_failure "test Node.js npm"
+            run_cmd node --version || { report_failure "test Node.js node"; failed=1; }
+            run_cmd npm --version || { report_failure "test Node.js npm"; failed=1; }
             ;;
         elixir)
-            run_cmd elixir --version || report_failure "test Elixir"
-            run_cmd mix --version || report_failure "test Elixir mix"
+            run_cmd elixir --version || { report_failure "test Elixir"; failed=1; }
+            run_cmd mix --version || { report_failure "test Elixir mix"; failed=1; }
             ;;
         kotlin)
-            run_cmd kotlin -version || report_failure "test Kotlin"
+            run_cmd kotlin -version || { report_failure "test Kotlin"; failed=1; }
             ;;
         golang)
-            run_cmd go version || report_failure "test Go"
+            run_cmd go version || { report_failure "test Go"; failed=1; }
             ;;
         python)
-            run_cmd python --version || report_failure "test Python"
+            run_cmd python --version || { report_failure "test Python"; failed=1; }
             ;;
         java)
-            run_cmd java -version || report_failure "test Java"
-            run_cmd javac -version || report_failure "test Java javac"
+            run_cmd java -version || { report_failure "test Java"; failed=1; }
+            run_cmd javac -version || { report_failure "test Java javac"; failed=1; }
             ;;
     esac
+
+    return "$failed"
 }
 
 function install_asdf_languages_menu() {
@@ -350,8 +335,11 @@ function install_asdf_languages_menu() {
             continue
         fi
 
-        install_asdf_language "${plugins[index]}" "${labels[index]}" "${versions[index]}"
-        test_asdf_language "${plugins[index]}" "${labels[index]}"
+        if install_asdf_language "${plugins[index]}" "${labels[index]}" "${versions[index]}"; then
+            test_asdf_language "${plugins[index]}" "${labels[index]}"
+        else
+            echo "Testing ${labels[index]} skipped because installation failed."
+        fi
     done
 
     run_cmd asdf reshim || true
@@ -437,10 +425,19 @@ function main() {
 
     install_asdf_languages_menu
     install_cargo_softwares
-    print_install_report
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    standalone_report=0
+    if [ -z "${DOTFILES_INSTALL_REPORT_FILE:-}" ]; then
+        standalone_report=1
+    fi
+    init_install_report
+    if [ "$standalone_report" = "1" ]; then
+        trap 'install_report_trap_exit 130' INT
+        trap 'install_report_trap_exit 143' TERM
+        trap 'print_install_report; cleanup_install_report' EXIT
+    fi
     main "$@"
 fi
 
