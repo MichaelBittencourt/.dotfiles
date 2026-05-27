@@ -163,6 +163,118 @@ function install_platform_tools() {
     cd "$currentPath" || return 1
 }
 
+function get_ubuntu_codename() {
+    local codename=""
+
+    if [ -r /etc/os-release ]; then
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        codename="${UBUNTU_CODENAME:-${VERSION_CODENAME:-}}"
+    fi
+
+    if [ -z "$codename" ]; then
+        report_failure "Docker apt repository codename detection"
+        return 1
+    fi
+
+    echo "$codename"
+}
+
+function install_docker_engine() {
+    local codename=""
+    local architecture=""
+    local repository=""
+
+    echo "Installing Docker Engine and Docker Compose plugin..."
+
+    codename=$(get_ubuntu_codename) || return 1
+    architecture=$(dpkg --print-architecture) || {
+        report_failure "Docker architecture detection"
+        return 1
+    }
+    repository="deb [arch=${architecture} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu ${codename} stable"
+
+    run_cmd sudo apt-get update || report_failure "Docker apt update before repository setup"
+    run_cmd sudo env DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y ca-certificates curl || {
+        report_failure "Docker apt repository prerequisites"
+        return 1
+    }
+    run_cmd sudo install -m 0755 -d /etc/apt/keyrings || {
+        report_failure "Docker apt keyring directory"
+        return 1
+    }
+    run_cmd sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc || {
+        report_failure "Docker apt GPG key download"
+        return 1
+    }
+    run_cmd sudo chmod a+r /etc/apt/keyrings/docker.asc || report_failure "Docker apt GPG key permissions"
+    run_cmd sudo bash -c "echo '$repository' > /etc/apt/sources.list.d/docker.list" || {
+        report_failure "Docker apt repository setup"
+        return 1
+    }
+    run_cmd sudo apt-get update || {
+        report_failure "Docker apt update after repository setup"
+        return 1
+    }
+    run_cmd sudo env DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || {
+        report_failure "Docker Engine and Compose plugin install"
+        return 1
+    }
+    run_cmd docker --version || report_failure "Docker version check"
+    run_cmd docker compose version || report_failure "Docker Compose version check"
+}
+
+function get_home_owner_user() {
+    local home_owner=""
+
+    home_owner=$(stat -c '%U' "$HOME" 2> /dev/null || true)
+    if [ -n "$home_owner" ]; then
+        echo "$home_owner"
+        return 0
+    fi
+
+    report_failure "Docker group user detection from HOME: $HOME"
+    return 1
+}
+
+function configure_docker_group_menu() {
+    local install_all="${1:-0}"
+    local target_user=""
+    local command_label=""
+    local selected_indexes=()
+
+    if ! command -v docker > /dev/null; then
+        echo "Docker is not available. Docker group configuration skipped."
+        return 0
+    fi
+
+    target_user=$(get_home_owner_user) || return 1
+    command_label="sudo groupadd -f docker && sudo usermod -aG docker ${target_user}"
+
+    if [ "$install_all" = "1" ]; then
+        echo "Configuring Docker group without interactive menu: $command_label"
+    else
+        mapfile -t selected_indexes < <(checkbox_menu "Configure Docker group access" "$command_label")
+        if [ "${#selected_indexes[@]}" -eq 0 ]; then
+            echo "Docker group configuration skipped."
+            return 0
+        fi
+    fi
+
+    run_cmd sudo groupadd -f docker || {
+        report_failure "Docker group creation"
+        return 1
+    }
+    run_cmd sudo usermod -aG docker "$target_user" || {
+        report_failure "Docker group user membership: $target_user"
+        return 1
+    }
+
+    echo "Docker group configured for user $target_user. You may need to log out and back in, or run: newgrp docker"
+    run_cmd sg docker -c 'docker --version' || report_failure "Docker group version check"
+    run_cmd sg docker -c 'docker compose version' || report_failure "Docker group Compose version check"
+}
+
 function get_asdf_os() {
     case "$(uname -s)" in
         Linux)
@@ -408,6 +520,11 @@ function main() {
     values+=("asdf")
     selected+=(0)
 
+    labels+=("tool: Docker Engine and Compose plugin")
+    types+=("docker")
+    values+=("docker")
+    selected+=(0)
+
     labels+=("setup: Configure installed programs")
     types+=("configure_programs")
     values+=("configure_programs")
@@ -436,7 +553,7 @@ function main() {
             apt)
                 selected_apt+=("${values[index]}")
                 ;;
-            platform_tools|asdf|configure_programs)
+            platform_tools|asdf|docker|configure_programs)
                 selected_tools+=("${types[index]}")
                 ;;
         esac
@@ -452,12 +569,16 @@ function main() {
             asdf)
                 install_asdf
                 ;;
+            docker)
+                install_docker_engine
+                ;;
             configure_programs)
                 configure_programs
                 ;;
         esac
     done
 
+    configure_docker_group_menu "$install_all"
     install_asdf_languages_menu "$install_all"
     install_cargo_softwares "$install_all"
 }

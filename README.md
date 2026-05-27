@@ -28,7 +28,9 @@ Menu controls:
 - Deselect all: `n`
 - Confirm: Enter
 
-The dependency menu can install apt packages such as shells, editors, Git, curl/wget, tmux, build tools for C/C++, Erlang and other base tools. It can also install Android platform tools and the asdf version manager.
+The dependency menu can install apt packages such as shells, editors, Git, curl/wget, tmux, SSH client/server, build tools for C/C++, Erlang and other base tools. It can also install Android platform tools, the asdf version manager, and Docker Engine with the Docker Compose plugin.
+
+Docker Engine is installed from Docker's official Ubuntu apt repository, including the apt keyring setup, repository source list, Docker Engine, Docker CLI, containerd, buildx and the Docker Compose plugin. When Docker is available, the installer also offers a Docker group configuration menu showing the command that will be executed: `sudo groupadd -f docker && sudo usermod -aG docker <home-owner>`. The target user is detected from the owner of `$HOME`. After changing group membership, the user may need to log out and back in, or run `newgrp docker`. The installer validates the new group context with `sg docker -c 'docker --version'` and `sg docker -c 'docker compose version'`.
 
 After the main dependency menu finishes, the installer opens extra menus only when the required command is available:
 
